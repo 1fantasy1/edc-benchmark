@@ -32,7 +32,11 @@
 run connectors
 java -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar
 
+ java "-Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties" -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar
+-------
 java -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar
+
+ java "-Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties" -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar
 
 
 ```
@@ -54,7 +58,10 @@ python -m scripts.run_experiment --config configs/transfer_baseline.yaml
 3、不同数据规模传输
 python -m scripts.run_experiment --config configs/transfer_dataSize.yaml
 4、不同政策复杂度
-python -m scripts.run_experiment --config configs/policy_overhead_simple.yaml
+python -m scripts.run_experiment --config configs/policy_overhead.yaml
+5、provider中断鲁棒
+python -m scripts.run_experiment --config configs/provider_restart_during_transfer.yaml
+
 
 ```
 

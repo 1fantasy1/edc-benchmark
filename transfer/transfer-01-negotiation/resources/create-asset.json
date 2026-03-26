@@ -10,7 +10,7 @@
   "dataAddress": {
     "type": "HttpData",
     "name": "Test asset",
-    "baseUrl": "https://jsonplaceholder.typicode.com/users",
+    "baseUrl": "{{ASSET_BASE_URL}}",
     "proxyPath": "true"
   }
 }

@@ -1,21 +1,21 @@
-experiment_id: exp002
-scenario: transfer_baseline
+experiment_id: exp_fault_003
+scenario: transfer_interruption
 repeat: 3
-output_dir: results/local/exp002
+output_dir: results/local/exp_fault_003
 
 provider_management_url: http://localhost:19193/management
 consumer_management_url: http://localhost:29193/management
-
 provider_protocol_url: http://localhost:19194/protocol
 consumer_protocol_url: http://localhost:29194/protocol
 
-provider_public_url: http://localhost:19291/public
+# 如果你中断的是 provider public 流量，建议这里也改成代理地址
+provider_public_url: http://localhost:30002/public
 
 api_key: password
 
 request_timeout_s: 30
 poll_interval_s: 2
-poll_timeout_s: 180
+poll_timeout_s: 240
 
 data_size_mb: 1
 asset_base_url: http://localhost:8088/file_1mb.bin
@@ -27,3 +27,11 @@ contract_definition_template_path: transfer/transfer-01-negotiation/resources/cr
 dataset_request_template_path: transfer/transfer-01-negotiation/resources/get-dataset.json
 negotiation_template_path: transfer/transfer-01-negotiation/resources/negotiate-contract.json
 transfer_template_path: transfer/transfer-02-provider-push/resources/start-transfer.json
+
+fault_injection_delay_s: 2
+retry_attempts: 3
+retry_interval_s: 5
+
+toxiproxy_base_url: http://localhost:8474
+toxiproxy_proxy_name: provider_public_proxy
+interruption_timeout_ms: 30000

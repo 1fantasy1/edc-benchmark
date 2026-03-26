@@ -109,6 +109,10 @@ def summarize_rows(rows: list[dict[str, Any]], config: dict[str, Any]) -> dict[s
     "throughput_mb_s",
     "policy_evaluation_latency_s",
     "resource_setup_latency_s",
+    "recovery_time_s",
+    "retry_success_rate",
+    "degraded_mode_success_rate",
+    "failed_transactions",
     ]
 
 

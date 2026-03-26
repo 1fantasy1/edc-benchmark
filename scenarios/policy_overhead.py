@@ -10,14 +10,16 @@ class PolicyOverheadScenario(ScenarioBase):
         mode = self.config.get("policy_mode", "simple")
 
         mapping = {
-            "none": self.config["policy_template_none_path"],
             "simple": self.config["policy_template_simple_path"],
             "medium": self.config["policy_template_medium_path"],
+            "complex": self.config["policy_template_complex_path"],
+            "obligation": self.config["policy_template_obligation_path"],
         }
 
         if mode not in mapping:
             raise ValueError(
-                f"Unsupported policy_mode={mode}. Expected one of {list(mapping.keys())}"
+                f"Unsupported policy_mode={mode}. "
+                f"Expected one of {list(mapping.keys())}"
             )
 
         return mapping[mode]
@@ -40,21 +42,23 @@ class PolicyOverheadScenario(ScenarioBase):
         )
 
         try:
-            # 资源准备，不纳入四段主流程，但保留
+            # 资源准备阶段不计入策略评估核心指标，但保留一个记录方便排查
             with timer() as t_resource_setup:
                 self.create_common_resources(run_ids)
             result["resource_setup_latency_s"] = round(
                 t_resource_setup["duration_s"], 6
             )
 
-            # 1) Catalog Request
+            # ---- 1) Catalog Request ----
             dataset_request_payload = render_template(
                 self.config["dataset_request_template_path"],
                 run_ids,
             )
 
             with timer() as t_catalog:
-                dataset_response = self.consumer.request_dataset(dataset_request_payload)
+                dataset_response = self.consumer.request_dataset(
+                    dataset_request_payload
+                )
 
             result["catalog_request_latency_s"] = round(
                 t_catalog["duration_s"], 6
@@ -63,7 +67,7 @@ class PolicyOverheadScenario(ScenarioBase):
             offer_id = self.extract_offer_id(dataset_response)
             result["offer_id"] = offer_id
 
-            # 2) Contract Offer Negotiation
+            # ---- 2) Contract Offer Negotiation ----
             negotiation_vars = dict(run_ids)
             negotiation_vars["CONTRACT_OFFER_ID"] = offer_id
 
@@ -83,7 +87,7 @@ class PolicyOverheadScenario(ScenarioBase):
                 t_negotiation_request["duration_s"], 6
             )
 
-            # 3) Contract Agreement
+            # ---- 3) Contract Agreement ----
             with timer() as t_agreement:
                 final_negotiation = self.wait_for_negotiation(negotiation_id)
 
@@ -95,13 +99,22 @@ class PolicyOverheadScenario(ScenarioBase):
             agreement_id = self.extract_agreement_id(final_negotiation)
             result["contract_agreement_id"] = agreement_id
 
-            # policy 专属指标：这里先近似定义为 negotiation + agreement 两段之和
-            result["policy_evaluation_latency_s"] = round(
+            # ---- 核心策略指标 ----
+            # 这里把策略评估延迟近似定义为：
+            # 从 negotiation 创建成功到 agreement 最终达成/失败的耗时
+            result["policy_evaluation_latency_s"] = result[
+                "contract_agreement_latency_s"
+            ]
+
+            # negotiation 端到端延迟：
+            # 从发起 negotiation 到 agreement 达成/失败
+            result["negotiation_end_to_end_latency_s"] = round(
                 result["contract_offer_negotiation_latency_s"]
                 + result["contract_agreement_latency_s"],
                 6,
             )
 
+            # 额外保留控制面总耗时（含 catalog）
             result["control_plane_total_latency_s"] = round(
                 result["catalog_request_latency_s"]
                 + result["contract_offer_negotiation_latency_s"]
