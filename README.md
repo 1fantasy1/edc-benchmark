@@ -21,7 +21,10 @@
 	•	中等文件传输
 	•	大文件传输
 	•	并发传输
-
+- 鲁棒性与异常场景评测
+	•	provider connector 重启
+	•	consumer connector 重启
+	•	network delay
 
 ## 依赖
 ## 构建
