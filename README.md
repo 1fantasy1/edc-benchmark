@@ -70,6 +70,8 @@ python -m scripts.run_experiment --config configs/consumer_restart_during_transf
  python -m scripts.run_experiment --config configs/network_delay_transfer.yaml
 8、传输超时
  python -m scripts.run_experiment --config configs/transfer_interruption.yaml
+ 9、链路抖动
+  python -m scripts.run_experiment --config configs/packet_loss_transfer.yaml
 ```
 
 
@@ -131,14 +133,14 @@ curl.exe "http://localhost:8474/proxies"
 curl.exe -X POST "http://localhost:8474/proxies/provider_protocol_proxy/toxics" -H "Content-Type: application/json" --data-binary "@latency.json" 
 ```
 
-加public时延：
+加public超时：
 
 ```
 curl.exe -X POST "http://localhost:8474/proxies/provider_public_proxy/toxics" -H "Content-Type: application/json" --data-binary "@timeout.json"
 ```
 
 
-改latency(200,500,1000,2000)和flitter,同时 文件大小，中断注入时间也会影响
+改latency(200,500,1000,2000)和flitter,timeout（10000，30000）同时 文件大小，中断注入时间也会影响
 
 运行：
 
