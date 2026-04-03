@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -9,12 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-# =============================================================
-#  链路抖动压力矩阵 —— 批量实验脚本
-# =============================================================
-
-STUDENT_ID = "3226470042"
-
+STUDENT_ID = "32264700042"
 
 @dataclass(frozen=True)
 class MatrixEntry:
