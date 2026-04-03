@@ -4,3 +4,6 @@ __pycache__/
 .vscode
 results/**
 !results/.gitkeep
+transfer/transfer-00-prerequisites
+configs/jitter_matrix
+files
