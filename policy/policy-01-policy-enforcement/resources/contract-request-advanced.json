@@ -1,0 +1,42 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "odrl": "http://www.w3.org/ns/odrl/2/"
+  },
+  "@type": "ContractRequest",
+  "counterPartyAddress": "http://localhost:19194/protocol",
+  "protocol": "dataspace-protocol-http",
+  "policy": {
+    "@id": "1:test-document:advanced-policy",
+    "@type": "odrl:Offer",
+    "odrl:assigner": {
+      "@id": "provider-advanced"
+    },
+    "odrl:target": {
+      "@id": "test-document"
+    },
+    "odrl:permission": [
+      {
+        "odrl:action": {
+          "@id": "odrl:use"
+        },
+        "odrl:constraint": {
+          "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/dataProtectionLevel",
+          "odrl:operator": {
+            "@id": "odrl:isAnyOf"
+          },
+          "odrl:rightOperand": [
+            {
+              "@value": "ENHANCED"
+            },
+            {
+              "@value": "MAXIMUM"
+            }
+          ]
+        }
+      }
+    ],
+    "odrl:prohibition": [],
+    "odrl:obligation": []
+  }
+}

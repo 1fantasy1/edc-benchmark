@@ -1,0 +1,33 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "odrl": "http://www.w3.org/ns/odrl/2/"
+  },
+  "@type": "PolicyDefinition",
+  "@id": "advanced-dataprotection-policy",
+  "policy": {
+    "@type": "odrl:Set",
+    "odrl:permission": [
+      {
+        "odrl:action": {
+          "@id": "odrl:use"
+        },
+        "odrl:constraint": {
+          "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/dataProtectionLevel",
+          "odrl:operator": {
+            "@id": "odrl:isAnyOf"
+          },
+          "odrl:rightOperand": [
+            {
+              "@value": "ENHANCED"
+            },
+            {
+              "@value": "MAXIMUM"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

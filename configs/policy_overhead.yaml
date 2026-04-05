@@ -17,15 +17,12 @@ request_timeout_s: 30
 poll_interval_s: 0.2
 poll_timeout_s: 120
 
-policy_mode: simple    
+policy_mode: no_policy   
 
-asset_base_url: http://localhost:8088/file_1mb.bin
+asset_template_path: policy/policy-01-policy-enforcement/resources/create-asset.json
+contract_definition_template_path: policy/policy-01-policy-enforcement/resources/create-contract-definition.json
+dataset_request_template_path: policy/policy-01-policy-enforcement/resources/catalog-requests.json
+negotiation_template_path: policy/policy-01-policy-enforcement/resources/contract-request.json
 
-asset_template_path: transfer/transfer-01-negotiation/resources/create-asset.json
-contract_definition_template_path: transfer/transfer-01-negotiation/resources/create-contract-definition.json
-dataset_request_template_path: transfer/transfer-01-negotiation/resources/get-dataset.json
-negotiation_template_path: transfer/transfer-01-negotiation/resources/negotiate-contract.json
+policy_template_simple_path:  policy/policy-01-policy-enforcement/resources/create-policy.json
 
-
-
-policy_template_simple_path:  transfer/transfer-01-negotiation/resources/create-policy.json

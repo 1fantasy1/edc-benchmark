@@ -1,35 +1,19 @@
 from __future__ import annotations
 
-from .base import ScenarioBase, render_template, timer
+from typing import Any
+
+from scenarios.base import ScenarioBase, EDCError, render_template
 
 
 class PolicyOverheadScenario(ScenarioBase):
     scenario_name = "policy_overhead"
 
-    def get_policy_template_path(self) -> str:
-        mode = self.config.get("policy_mode", "simple")
-
-        mapping = {
-            "simple": self.config["policy_template_simple_path"],
-            "medium": self.config["policy_template_medium_path"],
-            "complex": self.config["policy_template_complex_path"],
-            "obligation": self.config["policy_template_obligation_path"],
-        }
-
-        if mode not in mapping:
-            raise ValueError(
-                f"Unsupported policy_mode={mode}. "
-                f"Expected one of {list(mapping.keys())}"
-            )
-
-        return mapping[mode]
-
-    def run_once(self, run_index: int) -> dict[str, object]:
-        result: dict[str, object] = {
+    def run_once(self, run_index: int) -> dict[str, Any]:
+        result: dict[str, Any] = {
             "scenario": self.scenario_name,
             "run_index": run_index,
-            "policy_mode": self.config.get("policy_mode", "simple"),
             "success": False,
+            "policy_mode": self.config.get("policy_mode", "unknown"),
         }
 
         run_ids = self.build_run_ids(run_index)
@@ -42,32 +26,35 @@ class PolicyOverheadScenario(ScenarioBase):
         )
 
         try:
-            # 资源准备阶段不计入策略评估核心指标，但保留一个记录方便排查
-            with timer() as t_resource_setup:
-                self.create_common_resources(run_ids)
-            result["resource_setup_latency_s"] = round(
-                t_resource_setup["duration_s"], 6
+            # ----------------------------------------------------------
+            # 0) 创建公共资源：asset / policy / contract definition
+            # ----------------------------------------------------------
+            common_resources = self.create_common_resources(run_ids)
+            result["asset_response"] = common_resources.get("asset_response")
+            result["policy_response"] = common_resources.get("policy_response")
+            result["contract_definition_response"] = common_resources.get(
+                "contract_definition_response"
             )
 
-            # ---- 1) Catalog Request ----
+            # ----------------------------------------------------------
+            # 1) Catalog Request
+            # ----------------------------------------------------------
             dataset_request_payload = render_template(
                 self.config["dataset_request_template_path"],
                 run_ids,
             )
-
-            with timer() as t_catalog:
-                dataset_response = self.consumer.request_dataset(
-                    dataset_request_payload
-                )
-
-            result["catalog_request_latency_s"] = round(
-                t_catalog["duration_s"], 6
+            dataset_response, catalog_latency_s = self.measure_catalog_request(
+                dataset_request_payload
             )
+            result["catalog_request_latency_s"] = catalog_latency_s
+            result["dataset_response"] = dataset_response
 
             offer_id = self.extract_offer_id(dataset_response)
             result["offer_id"] = offer_id
 
-            # ---- 2) Contract Offer Negotiation ----
+            # ----------------------------------------------------------
+            # 2) Contract Offer Negotiation
+            # ----------------------------------------------------------
             negotiation_vars = dict(run_ids)
             negotiation_vars["CONTRACT_OFFER_ID"] = offer_id
 
@@ -76,59 +63,73 @@ class PolicyOverheadScenario(ScenarioBase):
                 negotiation_vars,
             )
 
-            with timer() as t_negotiation_request:
-                negotiation_response = self.consumer.start_negotiation(
-                    negotiation_payload
-                )
+            negotiation_response, negotiation_request_latency_s = (
+                self.measure_contract_offer_negotiation(negotiation_payload)
+            )
+            result["contract_offer_negotiation_latency_s"] = (
+                negotiation_request_latency_s
+            )
+            result["negotiation_response"] = negotiation_response
 
             negotiation_id = negotiation_response["@id"]
             result["negotiation_id"] = negotiation_id
-            result["contract_offer_negotiation_latency_s"] = round(
-                t_negotiation_request["duration_s"], 6
-            )
 
-            # ---- 3) Contract Agreement ----
-            with timer() as t_agreement:
-                final_negotiation = self.wait_for_negotiation(negotiation_id)
-
-            result["contract_agreement_latency_s"] = round(
-                t_agreement["duration_s"], 6
+            # ----------------------------------------------------------
+            # 3) Contract Agreement / Negotiation Completion
+            # ----------------------------------------------------------
+            final_negotiation, agreement_latency_s = self.measure_contract_agreement(
+                negotiation_id
             )
+            result["contract_agreement_latency_s"] = agreement_latency_s
+            result["final_negotiation"] = final_negotiation
             result["negotiation_state"] = final_negotiation.get("state")
 
             agreement_id = self.extract_agreement_id(final_negotiation)
-            result["contract_agreement_id"] = agreement_id
+            if agreement_id:
+                result["contract_agreement_id"] = agreement_id
 
-            # ---- 核心策略指标 ----
-            # 这里把策略评估延迟近似定义为：
-            # 从 negotiation 创建成功到 agreement 最终达成/失败的耗时
-            result["policy_evaluation_latency_s"] = result[
-                "contract_agreement_latency_s"
-            ]
-
-            # negotiation 端到端延迟：
-            # 从发起 negotiation 到 agreement 达成/失败
+            # ----------------------------------------------------------
+            # 4) 核心指标计算
+            # ----------------------------------------------------------
             result["negotiation_end_to_end_latency_s"] = round(
                 result["contract_offer_negotiation_latency_s"]
                 + result["contract_agreement_latency_s"],
                 6,
             )
 
-            # 额外保留控制面总耗时（含 catalog）
-            result["control_plane_total_latency_s"] = round(
-                result["catalog_request_latency_s"]
-                + result["contract_offer_negotiation_latency_s"]
-                + result["contract_agreement_latency_s"],
-                6,
+            # 第一版口径：
+            # 如果 provider 侧还没有额外埋点输出真实 policy evaluation 时间，
+            # 就先用“agreement 等待时间”作为近似值。
+            #
+            # 后续你如果在 provider 的 ConstraintFunction / PolicyFunctionsExtension
+            # 里打点并通过日志或接口回传，可以把这里替换成真实值。
+            result["policy_evaluation_latency_s"] = result[
+                "contract_agreement_latency_s"
+            ]
+
+            result["control_plane_total_latency_s"] = (
+                self.compute_control_plane_total_latency(
+                    catalog_request_latency_s=result["catalog_request_latency_s"],
+                    contract_offer_negotiation_latency_s=result[
+                        "contract_offer_negotiation_latency_s"
+                    ],
+                    contract_agreement_latency_s=result[
+                        "contract_agreement_latency_s"
+                    ],
+                    transfer_initiation_latency_s=None,
+                )
             )
 
-            state = final_negotiation.get("state")
-            if agreement_id and state in {"FINALIZED", "CONFIRMED"}:
+            # ----------------------------------------------------------
+            # 5) 成功判定
+            # ----------------------------------------------------------
+            success_states = {"FINALIZED", "CONFIRMED"}
+            if result["negotiation_state"] in success_states and agreement_id:
                 result["success"] = True
             else:
-                result["error"] = (
-                    final_negotiation.get("errorDetail")
-                    or f"Negotiation ended in state={state}"
+                result["success"] = False
+                result["error"] = final_negotiation.get("errorDetail") or (
+                    f"Negotiation ended in state={result['negotiation_state']}"
                 )
 
             return result
