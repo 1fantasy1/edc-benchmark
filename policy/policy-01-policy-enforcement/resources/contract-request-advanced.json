@@ -7,33 +7,57 @@
   "counterPartyAddress": "http://localhost:19194/protocol",
   "protocol": "dataspace-protocol-http",
   "policy": {
-    "@id": "1:test-document:advanced-policy",
+    "@id": "{{CONTRACT_OFFER_ID}}",
     "@type": "odrl:Offer",
     "odrl:assigner": {
       "@id": "provider-advanced"
     },
     "odrl:target": {
-      "@id": "test-document"
+      "@id": "{{ASSET_ID}}"
     },
     "odrl:permission": [
       {
         "odrl:action": {
           "@id": "odrl:use"
         },
-        "odrl:constraint": {
-          "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/dataProtectionLevel",
-          "odrl:operator": {
-            "@id": "odrl:isAnyOf"
-          },
-          "odrl:rightOperand": [
-            {
-              "@value": "ENHANCED"
+        "odrl:constraint": [
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/location",
+            "odrl:operator": {
+              "@id": "odrl:eq"
             },
-            {
-              "@value": "MAXIMUM"
+            "odrl:rightOperand": {
+              "@value": "eu"
             }
-          ]
-        }
+          },
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/timeRange",
+            "odrl:operator": {
+              "@id": "odrl:gteq"
+            },
+            "odrl:rightOperand": {
+              "@value": "2024-01-01T00:00:00"
+            }
+          },
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/timeRange",
+            "odrl:operator": {
+              "@id": "odrl:lteq"
+            },
+            "odrl:rightOperand": {
+              "@value": "2027-12-31T23:59:59"
+            }
+          },
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/dataProtectionLevel",
+            "odrl:operator": {
+              "@id": "odrl:gteq"
+            },
+            "odrl:rightOperand": {
+              "@value": "3"
+            }
+          }
+        ]
       }
     ],
     "odrl:prohibition": [],

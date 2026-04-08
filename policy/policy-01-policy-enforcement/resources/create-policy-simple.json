@@ -5,7 +5,7 @@
     "odrl": "http://www.w3.org/ns/odrl/2/"
   },
   "@type": "PolicyDefinition",
-  "@id": "simple-location-policy",
+  "@id": "{{POLICY_ID}}",
   "policy": {
     "@type": "odrl:Set",
     "odrl:permission": [

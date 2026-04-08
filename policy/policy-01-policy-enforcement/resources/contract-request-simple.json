@@ -1,6 +1,7 @@
 {
   "@context": {
     "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
     "odrl": "http://www.w3.org/ns/odrl/2/"
   },
   "@type": "ContractRequest",
@@ -10,7 +11,7 @@
     "@id": "{{CONTRACT_OFFER_ID}}",
     "@type": "odrl:Offer",
     "odrl:assigner": {
-      "@id": "provider-medium"
+      "@id": "provider-simple"
     },
     "odrl:target": {
       "@id": "{{ASSET_ID}}"
@@ -20,26 +21,15 @@
         "odrl:action": {
           "@id": "odrl:use"
         },
-        "odrl:constraint": [
-          {
-            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/timeRange",
-            "odrl:operator": {
-              "@id": "odrl:gteq"
-            },
-            "odrl:rightOperand": {
-              "@value": "2024-01-01T00:00:00"
-            }
+        "odrl:constraint": {
+          "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/location",
+          "odrl:operator": {
+            "@id": "odrl:eq"
           },
-          {
-            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/timeRange",
-            "odrl:operator": {
-              "@id": "odrl:lteq"
-            },
-            "odrl:rightOperand": {
-              "@value": "2027-12-31T23:59:59"
-            }
+          "odrl:rightOperand": {
+            "@value": "eu"
           }
-        ]
+        }
       }
     ],
     "odrl:prohibition": [],

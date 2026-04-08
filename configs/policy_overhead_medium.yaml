@@ -1,0 +1,31 @@
+experiment_id: exp004_medium
+scenario: policy_overhead
+repeat: 3
+output_dir: results/local/exp004_medium
+
+provider_management_url: http://localhost:19193/management
+consumer_management_url: http://localhost:29193/management
+
+provider_protocol_url: http://localhost:19194/protocol
+consumer_protocol_url: http://localhost:29194/protocol
+
+provider_public_url: http://localhost:19291/public
+
+api_key: password
+
+request_timeout_s: 30
+poll_interval_s: 0.2
+poll_timeout_s: 120
+
+# 中等级别政策 - 时间范围约束
+# MEDIUM: 时间范围约束（TimeRangeConstraintFunction），测试范围验证的开销
+policy_mode: medium
+
+asset_template_path: policy/policy-01-policy-enforcement/resources/create-asset.json
+contract_definition_template_path: policy/policy-01-policy-enforcement/resources/create-contract-definition.json
+dataset_request_template_path: policy/policy-01-policy-enforcement/resources/catalog-request.json
+
+policy_template_path: policy/policy-01-policy-enforcement/resources/create-policy-medium.json
+policy_template_medium_path: policy/policy-01-policy-enforcement/resources/create-policy-medium.json
+negotiation_template_path: policy/policy-01-policy-enforcement/resources/contract-request-medium.json
+negotiation_template_medium_path: policy/policy-01-policy-enforcement/resources/contract-request-medium.json

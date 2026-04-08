@@ -2,18 +2,93 @@ from __future__ import annotations
 
 from typing import Any
 
-from scenarios.base import ScenarioBase, EDCError, render_template
+from scenarios.base import (
+    ScenarioBase,
+    EDCError,
+    render_template,
+)
 
 
 class PolicyOverheadScenario(ScenarioBase):
+    """
+    PolicyOverheadScenario 用于测试不同复杂度政策对EDC性能的影响。
+    
+    支持三个政策复杂度级别：
+    - simple: 单个地点约束（Location ConstraintFunction）
+    - medium: 时间范围约束（TimeRangeConstraintFunction）
+    - advanced: 多层级数据保护级别约束（DataProtectionLevelConstraintFunction）
+    
+    配置参数：
+    - policy_mode: 政策模式（simple/medium/advanced），默认为simple
+    """
+
     scenario_name = "policy_overhead"
 
+    def get_policy_template_path(self) -> str:
+        """
+        根据配置的 policy_mode 返回对应的政策模板路径。
+        """
+        policy_mode = self.config.get("policy_mode", "simple").lower()
+        
+        if policy_mode == "simple":
+            return self.config.get(
+                "policy_template_simple_path",
+                "policy/policy-01-policy-enforcement/resources/create-policy-simple.json",
+            )
+        elif policy_mode == "medium":
+            return self.config.get(
+                "policy_template_medium_path",
+                "policy/policy-01-policy-enforcement/resources/create-policy-medium.json",
+            )
+        elif policy_mode == "advanced":
+            return self.config.get(
+                "policy_template_advanced_path",
+                "policy/policy-01-policy-enforcement/resources/create-policy-advanced.json",
+            )
+        else:
+            raise ValueError(f"Unsupported policy_mode: {policy_mode}")
+
+    def get_negotiation_template_path(self) -> str:
+        """
+        根据配置的 policy_mode 返回对应的合同请求模板路径。
+        """
+        policy_mode = self.config.get("policy_mode", "simple").lower()
+        
+        if policy_mode == "simple":
+            return self.config.get(
+                "negotiation_template_simple_path",
+                "policy/policy-01-policy-enforcement/resources/contract-request-simple.json",
+            )
+        elif policy_mode == "medium":
+            return self.config.get(
+                "negotiation_template_medium_path",
+                "policy/policy-01-policy-enforcement/resources/contract-request-medium.json",
+            )
+        elif policy_mode == "advanced":
+            return self.config.get(
+                "negotiation_template_advanced_path",
+                "policy/policy-01-policy-enforcement/resources/contract-request-advanced.json",
+            )
+        else:
+            raise ValueError(f"Unsupported policy_mode: {policy_mode}")
+
     def run_once(self, run_index: int) -> dict[str, Any]:
+        """
+        执行一次政策开销测试。
+        
+        四段测试：
+        1. 资源创建（Asset / Policy / Contract Definition）
+        2. Catalog 请求 - 测试Catalog API性能
+        3. Contract 谈判 - 测试政策评估在谈判报价阶段的开销
+        4. Agreement 等待 - 测试政策评估在agreement阶段的开销
+        """
+        policy_mode = self.config.get("policy_mode", "simple").lower()
+        
         result: dict[str, Any] = {
             "scenario": self.scenario_name,
             "run_index": run_index,
             "success": False,
-            "policy_mode": self.config.get("policy_mode", "unknown"),
+            "policy_mode": policy_mode,
         }
 
         run_ids = self.build_run_ids(run_index)
@@ -28,6 +103,7 @@ class PolicyOverheadScenario(ScenarioBase):
         try:
             # ----------------------------------------------------------
             # 0) 创建公共资源：asset / policy / contract definition
+            #    这个阶段不计入主要指标
             # ----------------------------------------------------------
             common_resources = self.create_common_resources(run_ids)
             result["asset_response"] = common_resources.get("asset_response")
@@ -37,7 +113,7 @@ class PolicyOverheadScenario(ScenarioBase):
             )
 
             # ----------------------------------------------------------
-            # 1) Catalog Request
+            # 1) Catalog Request - 测试性能
             # ----------------------------------------------------------
             dataset_request_payload = render_template(
                 self.config["dataset_request_template_path"],
@@ -53,13 +129,15 @@ class PolicyOverheadScenario(ScenarioBase):
             result["offer_id"] = offer_id
 
             # ----------------------------------------------------------
-            # 2) Contract Offer Negotiation
+            # 2) Contract Offer Negotiation - 测试政策评估开销
             # ----------------------------------------------------------
             negotiation_vars = dict(run_ids)
             negotiation_vars["CONTRACT_OFFER_ID"] = offer_id
 
+            # 使用对应政策模式的合同请求模板
+            negotiation_template_path = self.get_negotiation_template_path()
             negotiation_payload = render_template(
-                self.config["negotiation_template_path"],
+                negotiation_template_path,
                 negotiation_vars,
             )
 
@@ -76,6 +154,7 @@ class PolicyOverheadScenario(ScenarioBase):
 
             # ----------------------------------------------------------
             # 3) Contract Agreement / Negotiation Completion
+            #    轮询等待直到达到最终状态
             # ----------------------------------------------------------
             final_negotiation, agreement_latency_s = self.measure_contract_agreement(
                 negotiation_id
@@ -98,11 +177,8 @@ class PolicyOverheadScenario(ScenarioBase):
             )
 
             # 第一版口径：
-            # 如果 provider 侧还没有额外埋点输出真实 policy evaluation 时间，
-            # 就先用“agreement 等待时间”作为近似值。
-            #
-            # 后续你如果在 provider 的 ConstraintFunction / PolicyFunctionsExtension
-            # 里打点并通过日志或接口回传，可以把这里替换成真实值。
+            # Policy 评估开销 = Agreement等待时间
+            # （Policy 评估主要发生在Provider的Agreement验证阶段）
             result["policy_evaluation_latency_s"] = result[
                 "contract_agreement_latency_s"
             ]

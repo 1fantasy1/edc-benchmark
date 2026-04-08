@@ -2,7 +2,7 @@
   "@context": {
     "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
   },
-  "@id": "test-document",
+  "@id": "{{ASSET_ID}}",
   "properties": {
     "name": "product description",
     "contenttype": "application/json"

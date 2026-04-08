@@ -2,15 +2,13 @@
   "@context": {
     "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
   },
-  "@id": "1",
-
-  "accessPolicyId": "simple-location-policy",
-  "contractPolicyId": "simple-location-policy",
-  
+  "@id": "{{CONTRACT_DEFINITION_ID}}",
+  "accessPolicyId": "{{POLICY_ID}}",
+  "contractPolicyId": "{{POLICY_ID}}",
   "assetsSelector": [{
     "@type": "CriterionDto",
     "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
     "operator": "=",
-    "operandRight": "test-document"
+    "operandRight": "{{ASSET_ID}}"
   }]
 }

@@ -1,7 +1,7 @@
-experiment_id: exp004
+experiment_id: exp004_simple
 scenario: policy_overhead
 repeat: 3
-output_dir: results/local/exp004
+output_dir: results/local/exp004_simple
 
 provider_management_url: http://localhost:19193/management
 consumer_management_url: http://localhost:29193/management
@@ -17,23 +17,15 @@ request_timeout_s: 30
 poll_interval_s: 0.2
 poll_timeout_s: 120
 
-# 政策模式：simple, medium, advanced
-# - simple: 单个地点约束（Location ConstraintFunction）
-# - medium: 时间范围约束（TimeRangeConstraintFunction），测试范围验证的开销
-# - advanced: 多层级数据保护级别约束（DataProtectionLevelConstraintFunction），测试多级比对的开销
+# 简单级别政策 - 地点约束
+# SIMPLE: 单个地点约束（Location ConstraintFunction）
 policy_mode: simple
 
-# 通用资源文件路径
 asset_template_path: policy/policy-01-policy-enforcement/resources/create-asset.json
 contract_definition_template_path: policy/policy-01-policy-enforcement/resources/create-contract-definition.json
 dataset_request_template_path: policy/policy-01-policy-enforcement/resources/catalog-request.json
 
-# 政策特定模板路径（若不在config中指定，则使用代码中的默认值）
+policy_template_path: policy/policy-01-policy-enforcement/resources/create-policy-simple.json
 policy_template_simple_path: policy/policy-01-policy-enforcement/resources/create-policy-simple.json
-policy_template_medium_path: policy/policy-01-policy-enforcement/resources/create-policy-medium.json
-policy_template_advanced_path: policy/policy-01-policy-enforcement/resources/create-policy-advanced.json
-
+negotiation_template_path: policy/policy-01-policy-enforcement/resources/contract-request-simple.json
 negotiation_template_simple_path: policy/policy-01-policy-enforcement/resources/contract-request-simple.json
-negotiation_template_medium_path: policy/policy-01-policy-enforcement/resources/contract-request-medium.json
-negotiation_template_advanced_path: policy/policy-01-policy-enforcement/resources/contract-request-advanced.json
-

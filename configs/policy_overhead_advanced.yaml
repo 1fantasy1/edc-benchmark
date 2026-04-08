@@ -1,0 +1,31 @@
+experiment_id: exp004_advanced
+scenario: policy_overhead
+repeat: 3
+output_dir: results/local/exp004_advanced
+
+provider_management_url: http://localhost:19193/management
+consumer_management_url: http://localhost:29193/management
+
+provider_protocol_url: http://localhost:19194/protocol
+consumer_protocol_url: http://localhost:29194/protocol
+
+provider_public_url: http://localhost:19291/public
+
+api_key: password
+
+request_timeout_s: 30
+poll_interval_s: 0.2
+poll_timeout_s: 120
+
+# 高级级别政策 - 多层级数据保护级别约束
+# ADVANCED: 多层级数据保护级别约束（DataProtectionLevelConstraintFunction），测试多级比对的开销
+policy_mode: advanced
+
+asset_template_path: policy/policy-01-policy-enforcement/resources/create-asset.json
+contract_definition_template_path: policy/policy-01-policy-enforcement/resources/create-contract-definition.json
+dataset_request_template_path: policy/policy-01-policy-enforcement/resources/catalog-request.json
+
+policy_template_path: policy/policy-01-policy-enforcement/resources/create-policy-advanced.json
+policy_template_advanced_path: policy/policy-01-policy-enforcement/resources/create-policy-advanced.json
+negotiation_template_path: policy/policy-01-policy-enforcement/resources/contract-request-advanced.json
+negotiation_template_advanced_path: policy/policy-01-policy-enforcement/resources/contract-request-advanced.json
