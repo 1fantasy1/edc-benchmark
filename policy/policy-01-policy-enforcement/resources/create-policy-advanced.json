@@ -1,0 +1,57 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "odrl": "http://www.w3.org/ns/odrl/2/"
+  },
+  "@type": "PolicyDefinition",
+  "@id": "{{POLICY_ID}}",
+  "policy": {
+    "@type": "odrl:Set",
+    "odrl:permission": [
+      {
+        "odrl:action": {
+          "@id": "odrl:use"
+        },
+        "odrl:constraint": [
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/location",
+            "odrl:operator": {
+              "@id": "odrl:eq"
+            },
+            "odrl:rightOperand": {
+              "@value": "eu"
+            }
+          },
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/timeRange",
+            "odrl:operator": {
+              "@id": "odrl:gteq"
+            },
+            "odrl:rightOperand": {
+              "@value": "2024-01-01T00:00:00"
+            }
+          },
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/timeRange",
+            "odrl:operator": {
+              "@id": "odrl:lteq"
+            },
+            "odrl:rightOperand": {
+              "@value": "2027-12-31T23:59:59"
+            }
+          },
+          {
+            "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/dataProtectionLevel",
+            "odrl:operator": {
+              "@id": "odrl:gteq"
+            },
+            "odrl:rightOperand": {
+              "@value": "3"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
